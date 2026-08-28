@@ -1,0 +1,48 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# Virtual environments
+env/
+venv/
+.venv/
+ENV/
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+
+# Test, coverage, and tool caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Build and distribution output
+build/
+dist/
+*.egg-info/
+
+# Logs and local databases
+*.log
+*.sqlite
+*.sqlite3
+
+# IDE and operating-system files
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.vs/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Local Docker and generated files
+docker-compose.override.yml
