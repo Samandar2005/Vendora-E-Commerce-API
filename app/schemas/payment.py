@@ -3,19 +3,7 @@ from uuid import UUID
 from datetime import datetime
 from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, Field
-
-
-class PaymentProvider(str, Enum):
-    STRIPE = "STRIPE"
-    MOCK = "MOCK"
-
-
-class PaymentStatus(str, Enum):
-    PENDING = "PENDING"
-    SUCCESS = "SUCCESS"
-    FAILED = "FAILED"
-    REFUNDED = "REFUNDED"
-
+from app.enums.all_enums import PaymentProvider, PaymentStatus
 
 class PaymentCreate(BaseModel):
     order_id: UUID

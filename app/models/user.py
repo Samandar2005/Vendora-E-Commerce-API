@@ -5,7 +5,7 @@ from typing import Optional
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import TimeStampedModel
-from app.schemas.user import UserRole
+from app.enums.all_enums import UserRole
 
 if TYPE_CHECKING:
     from app.models.store import Store

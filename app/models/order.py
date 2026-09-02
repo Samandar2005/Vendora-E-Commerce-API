@@ -5,7 +5,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from decimal import Decimal
 
 from app.models.base import TimeStampedModel
-from app.schemas.order import OrderStatus
+from app.enums.all_enums import OrderStatus
 
 if TYPE_CHECKING:
     from app.models.user import User

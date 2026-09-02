@@ -1,7 +1,8 @@
 from uuid import UUID
 from typing import TYPE_CHECKING
-from sqlalchemy import String, Enum as SQLEnum, Boolean, Text, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import String, Text, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
+from slugify import slugify
 
 from app.models.base import TimeStampedModel
 from app.schemas.user import UserRole
@@ -26,3 +27,10 @@ class Store(TimeStampedModel):
         back_populates="store", 
         cascade="all, delete-orphan"
     )
+
+    @validates("name")
+    def generate_slug(self, key: str, name: str) -> str:
+        """Name o'zgarganda slug'ni avtomatik yaratadi."""
+        if name:
+            self.slug = slugify(name)
+        return name
