@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     CELERY_BROKER_URL: str = "redis://redis:6379/0"
     CELERY_RESULT_BACKEND: str = "redis://redis:6379/0"
 
+    STRIPE_SECRET_KEY: str
+    STRIPE_PUBLISHABLE_KEY: str
+    STRIPE_WEBHOOK_SECRET: str | None = None
+
     # Metadata variables
     title: str = "Vendora E-Commerce API"
     description: str = "Multi-vendor e-commerce backend API"

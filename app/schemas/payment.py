@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Optional
 from uuid import UUID
 from datetime import datetime
 from decimal import Decimal
@@ -14,12 +15,21 @@ class PaymentCreate(BaseModel):
 class PaymentResponse(BaseModel):
     id: UUID
     order_id: UUID
+    user_id: UUID
     provider: PaymentProvider
     status: PaymentStatus
     amount: Decimal
     currency: str
-    transaction_id: str | None = None
-    error_message: str | None = None
+    transaction_id: Optional[str] = None
     created_at: datetime
+    updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class CreateCheckoutSessionRequest(BaseModel):
+    order_id: UUID
+
+class CheckoutSessionResponse(BaseModel):
+    checkout_url: str
+    session_id: str
