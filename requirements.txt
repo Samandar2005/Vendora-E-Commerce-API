@@ -16,3 +16,4 @@ bcrypt==4.0.1
 python-slugify
 aiofiles
 python-multipart
+redis>=5.0.0

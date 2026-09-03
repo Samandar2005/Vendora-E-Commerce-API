@@ -5,11 +5,14 @@ from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from collections.abc import AsyncGenerator
 
 from app.core.config import get_settings
 from app.core.database import get_database
 from app.models.user import User, UserRole
 from app.core.security import ResponseMessages
+from redis.asyncio import Redis
+from app.core.redis import redis_client
 
 settings = get_settings()
 
@@ -84,3 +87,10 @@ allow_admin = RoleChecker([UserRole.ADMIN])
 allow_seller = RoleChecker([UserRole.SELLER, UserRole.ADMIN])
 allow_seller_or_admin = RoleChecker([UserRole.SELLER, UserRole.ADMIN])
 allow_customer = RoleChecker([UserRole.CUSTOMER, UserRole.SELLER, UserRole.ADMIN])
+
+async def get_redis() -> AsyncGenerator[Redis, None]:
+    """Redis seansini beruvchi dependency."""
+    try:
+        yield redis_client
+    finally:
+        pass
