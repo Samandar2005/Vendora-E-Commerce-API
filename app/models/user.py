@@ -24,6 +24,8 @@ class User(TimeStampedModel):
     role: Mapped[UserRole] = mapped_column(SQLEnum(UserRole), nullable=False, default=UserRole.CUSTOMER)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
+    avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
     store: Mapped["Store | None"] = relationship(
         "Store",
         back_populates="seller", 

@@ -1,27 +1,24 @@
 import asyncio
 from logging.config import fileConfig
 
+from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from alembic import context
-
-# 1. Loyihangiz sozlamalari va modellaringizni import qiling
+# Barcha modellar bitta joyda ro'yxatdan o'tishi uchun:
+import app.models
+from app.core.database import Base  # Modellaringiz qaysi Base'dan foydalansa o'sha!
 from app.core.config import get_settings
-from app.models.base import Base
-import app.models  # Barcha modellar Alembic'ga ko'rinishi uchun
 
 config = context.config
 
 if config.config_file_name:
     fileConfig(config.config_file_name)
 
-# 2. Bazaning metadata qismini ulaymiz
 target_metadata = Base.metadata
 
-# 3. DATABASE_URL'ni dinamik ravishda .env fayldan olamiz
 settings = get_settings()
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", settings.async_database_url)
 
 
 def run_migrations_offline() -> None:
@@ -45,8 +42,11 @@ def do_run_migrations(connection):
 
 
 async def run_async_migrations() -> None:
+    configuration = config.get_section(config.config_ini_section, {})
+    configuration["sqlalchemy.url"] = settings.async_database_url
+
     connectable = async_engine_from_config(
-        config.get_section(config.config_ini_section, {}),
+        configuration,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )

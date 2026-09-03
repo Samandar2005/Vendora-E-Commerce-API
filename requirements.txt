@@ -14,3 +14,5 @@ passlib[bcrypt]==1.7.4
 email-validator>=2.0.0
 bcrypt==4.0.1
 python-slugify
+aiofiles
+python-multipart

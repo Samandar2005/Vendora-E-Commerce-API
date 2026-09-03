@@ -1,10 +1,12 @@
+from datetime import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
-from uuid import UUID
+from uuid import UUID, uuid4
 
-from sqlalchemy import Boolean, ForeignKey, Numeric, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Numeric, String, Text
+
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
+from app.core.database import Base
 from app.models.base import TimeStampedModel
 
 if TYPE_CHECKING:
@@ -39,7 +41,7 @@ class Category(TimeStampedModel):
 
 
 class Product(TimeStampedModel):
-    __tablename__ = "products"
+    __tablename__ = "products" 
 
     store_id: Mapped[UUID] = mapped_column(
         ForeignKey("stores.id", ondelete="CASCADE"), nullable=False
@@ -60,6 +62,13 @@ class Product(TimeStampedModel):
         Boolean, default=True, nullable=False
     )
 
+    images: Mapped[list["ProductImage"]] = relationship(
+        "ProductImage",
+        back_populates="product",
+        cascade="all, delete-orphan",
+        order_by="ProductImage.is_main.desc()",
+    )
+
     store: Mapped["Store"] = relationship(back_populates="products")
     category: Mapped["Category | None"] = relationship(
         "Category", back_populates="products"
@@ -67,3 +76,16 @@ class Product(TimeStampedModel):
     orderItems: Mapped[list["OrderItems"]] = relationship(
         back_populates="product", cascade="all, delete-orphan"
     )
+
+
+class ProductImage(TimeStampedModel):
+    __tablename__ = "product_images"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    product_id: Mapped[UUID] = mapped_column(
+        ForeignKey("products.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    image_url: Mapped[str] = mapped_column(String(500), nullable=False)
+    is_main: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    product: Mapped["Product"] = relationship("Product", back_populates="images")

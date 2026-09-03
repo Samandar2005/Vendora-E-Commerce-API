@@ -1,4 +1,4 @@
-"""Setup the Database and support functions.."""
+"""Setup the Database and support functions."""
 
 from collections.abc import AsyncGenerator
 from typing import Any
@@ -6,10 +6,10 @@ from typing import Any
 from sqlalchemy import MetaData
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
+
 from app.core.config import get_settings
 
-# Config'dagi tayyor DATABASE_URL'dan foydalanamiz
-DATABASE_URL = get_settings().DATABASE_URL
+settings = get_settings()
 
 
 class Base(DeclarativeBase):
@@ -29,11 +29,12 @@ class Base(DeclarativeBase):
     )
 
 
-async_engine = create_async_engine(DATABASE_URL, echo=False)
-async_session = async_sessionmaker(async_engine, expire_on_commit=False)
+# Yagona to'g'ri engine va sessionmaker
+async_engine = create_async_engine(settings.async_database_url, echo=True)
+AsyncSessionLocal = async_sessionmaker(async_engine, expire_on_commit=False)
 
 
 async def get_database() -> AsyncGenerator[AsyncSession, Any]:
     """Return the database connection as a Generator."""
-    async with async_session() as session, session.begin():
+    async with AsyncSessionLocal() as session:
         yield session

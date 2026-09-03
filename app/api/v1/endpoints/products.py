@@ -1,7 +1,8 @@
-from typing import Any
 from uuid import UUID
-from fastapi import APIRouter, Depends, status
+from typing import List, Annotated, Any
+from fastapi import APIRouter, Depends, File, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
+
 
 from app.api.deps import allow_seller_or_admin, get_current_user, oauth2_schema
 from app.core.database import get_database
@@ -49,6 +50,22 @@ async def create_product(
     return await ProductManager.create_product(
         product_data, current_user, session
     )
+
+@router.post("/{product_id}/images", status_code=status.HTTP_200_OK)
+async def upload_product_images(
+    product_id: UUID,
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_database),
+):
+    """Upload product images."""
+    return await ProductManager.upload_images(
+        product_id=product_id,
+        files=[file],
+        current_user=current_user,
+        session=session,
+    )
+
 
 
 @router.patch(

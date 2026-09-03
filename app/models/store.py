@@ -20,6 +20,9 @@ class Store(TimeStampedModel):
     slug: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     description: Mapped[Text | None] = mapped_column(Text, nullable=True)
 
+    logo_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    banner_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
     seller: Mapped["User"] = relationship("User", back_populates="store")
     
 

@@ -2,7 +2,8 @@
 
 from collections.abc import Sequence
 from uuid import UUID
-from fastapi import APIRouter, Depends, Request, status
+
+from fastapi import APIRouter, Depends, File, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import (
@@ -14,8 +15,8 @@ from app.api.deps import (
 from app.core.database import get_database
 from app.models.store import Store
 from app.models.user import User
-from app.services.store_manager import StoreManager
 from app.schemas.store import StoreCreate, StoreEditRequest, StoreResponse
+from app.services.store_manager import StoreManager
 
 router = APIRouter(tags=["Stores"], prefix="/stores")
 
@@ -86,3 +87,39 @@ async def delete_store(
 ) -> None:
     """Delete Store with id."""
     await StoreManager.delete_store(store_id=store_id, session=db)
+
+
+@router.post(
+    "/{store_id}/logo",
+    dependencies=[Depends(oauth2_schema), Depends(allow_seller_or_admin)],
+    response_model=StoreResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def upload_store_logo(
+    store_id: UUID,
+    file: UploadFile = File(description="Store logo image"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_database),
+) -> Store:
+    """Upload store logo image."""
+    return await StoreManager.upload_logo(
+        store_id=store_id, file=file, current_user=current_user, session=db
+    )
+
+
+@router.post(
+    "/{store_id}/banner",
+    dependencies=[Depends(oauth2_schema), Depends(allow_seller_or_admin)],
+    response_model=StoreResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def upload_store_banner(
+    store_id: UUID,
+    file: UploadFile = File(description="Store banner image"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_database),
+) -> Store:
+    """Upload store banner image."""
+    return await StoreManager.upload_banner(
+        store_id=store_id, file=file, current_user=current_user, session=db
+    )

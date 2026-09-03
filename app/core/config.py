@@ -8,15 +8,14 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "default_secret"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
-    # Database Settings (.env fayldagi nomlarga moslandi)
+    # Database Settings
     POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: str = "postgres"
-    POSTGRES_ADDRESS: str = "db"
+    POSTGRES_PASSWORD: str = "root1234"
+    POSTGRES_HOST: str = "db"  # Docker ichida "db" bo'lishi shart
     POSTGRES_PORT: int = 5432
     POSTGRES_DB: str = "vendora_db"
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@db:5432/vendora_db"
 
-    # Redis & Celery
+    # Redis & Celery (Docker uchun localhost o'rniga redis)
     REDIS_URL: str = "redis://redis:6379/0"
     CELERY_BROKER_URL: str = "redis://redis:6379/0"
     CELERY_RESULT_BACKEND: str = "redis://redis:6379/0"
@@ -27,17 +26,16 @@ class Settings(BaseSettings):
     version: str = "v1"
 
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore"
+        env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
 
     @property
     def async_database_url(self) -> str:
-        return (
-            f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
-            f"@{self.POSTGRES_ADDRESS}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
-        )
+        return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+
+    @property
+    def DATABASE_URL(self) -> str:
+        return self.async_database_url
 
 
 @lru_cache

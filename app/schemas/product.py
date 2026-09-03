@@ -1,12 +1,21 @@
 from decimal import Decimal
+from typing import List
 from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
 from app.schemas.category import CategoryResponse
 from app.schemas.example import ExampleProduct
 
 
+class ProductImageResponse(BaseModel):
+    id: UUID
+    product_id: UUID
+    image_url: str
+    is_main: bool
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class ProductBase(BaseModel):
-    # example ichidagi [...] massiv qavslarini olib tashlaymiz
     title: str = Field(
         json_schema_extra={"example": ExampleProduct.title},
         min_length=2,
@@ -62,13 +71,12 @@ class ProductUpdate(BaseModel):
     )
 
 
-# Swagger UI'da filtr parametrlarini olish uchun
 class ProductFilterParams(BaseModel):
     store_id: UUID | None = None
     category_id: UUID | None = None
     min_price: Decimal | None = None
     max_price: Decimal | None = None
-    search: str | None = None  # Sarlavha bo'yicha qidirish
+    search: str | None = None
     is_active: bool | None = None
 
 
@@ -77,5 +85,8 @@ class ProductResponse(ProductBase):
     store_id: UUID
     category_id: UUID | None = None
     category: CategoryResponse | None = None
+    
+    # Mahsulot rasmlari ro'yxati qo'shildi
+    images: List[ProductImageResponse] = []
 
     model_config = ConfigDict(from_attributes=True)

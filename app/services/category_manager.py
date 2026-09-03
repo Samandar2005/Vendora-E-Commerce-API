@@ -25,9 +25,10 @@ class CategoryManager:
             category = Category(**cat_dict)
             session.add(category)
 
-            await session.flush()
-            await session.refresh(category)
-            return category
+            await session.commit()  # Bazaga doimiy saqlash
+
+            # Subcategories yuklanishi uchun qayta olish
+            return await CategoryManager.get_category_by_id(category.id, session)
 
         except IntegrityError:
             await session.rollback()
@@ -86,9 +87,8 @@ class CategoryManager:
             setattr(category, key, value)
 
         try:
-            await session.flush()
-            await session.refresh(category)
-            return category
+            await session.commit()  # Bazaga doimiy saqlash
+            return await CategoryManager.get_category_by_id(category_id, session)
         except IntegrityError:
             await session.rollback()
             raise HTTPException(
@@ -103,5 +103,4 @@ class CategoryManager:
             category_id, session
         )
         await session.delete(category)
-        await session.flush()
-
+        await session.commit()  # O'chirishni bazaga saqlash

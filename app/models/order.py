@@ -35,6 +35,8 @@ class Order(TimeStampedModel):
     )
 
 class OrderItems(TimeStampedModel):
+    __tablename__ = "order_items"
+    
     order_id: Mapped[UUID] = mapped_column(ForeignKey("orders.id"), nullable=False)
     product_id: Mapped[UUID] = mapped_column(ForeignKey("products.id"), nullable=False)
 

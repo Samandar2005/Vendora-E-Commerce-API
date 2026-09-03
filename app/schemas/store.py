@@ -1,7 +1,5 @@
-from enum import Enum
-from uuid import UUID
 from datetime import datetime
-from decimal import Decimal
+from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
 from app.schemas.user import UserResponse
 from app.schemas.example import ExampleStore
@@ -18,9 +16,12 @@ class StoreResponse(BaseModel):
     name: str = Field(examples=[ExampleStore.name])
     slug: str = Field(examples=[ExampleStore.slug])
     description: str | None = Field(examples=[ExampleStore.description], default=None)
+    
+    # Rasmlar uchun URL maydonlari qo'shildi
+    logo_url: str | None = None
+    banner_url: str | None = None
 
     created_at: datetime
-
     seller: UserResponse | None = None
 
     model_config = ConfigDict(from_attributes=True)
@@ -29,4 +30,3 @@ class StoreResponse(BaseModel):
 class StoreEditRequest(BaseModel):
     name: str | None = Field(examples=[ExampleStore.name], default=None)
     description: str | None = Field(examples=[ExampleStore.description], default=None)
-
