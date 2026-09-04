@@ -31,6 +31,9 @@ class Payment(TimeStampedModel):
     amount: Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2), nullable=False)
     currency: Mapped[str] = mapped_column(String(10), default="USD")
 
+    refund_id: Mapped[str] = mapped_column(String(255), nullable=True)
+    refund_reason: Mapped[str] = mapped_column(String(255), nullable=True)
+
     transaction_id: Mapped[str | None] = mapped_column(
         String(255), 
         unique=True, 

@@ -5,10 +5,10 @@ from app.core.database import get_database as get_db
 from app.api.deps import get_current_user
 from app.models.user import User
 from uuid import UUID
-from app.schemas.payment import CreateCheckoutSessionRequest, CheckoutSessionResponse, PaymentResponse
+from app.schemas.payment import CreateCheckoutSessionRequest, CheckoutSessionResponse, PaymentResponse, RefundPaymentRequest
 from app.services.stripe_service import StripeService
 from fastapi import APIRouter, Depends, Query, HTTPException, status, Request, Header
-from app.enums.all_enums import PaymentStatus, UserRole # Agar UserRole mavjud bo'lsa
+from app.enums.all_enums import PaymentStatus, UserRole 
 import stripe
 from typing import List, Optional
 
@@ -94,4 +94,22 @@ async def get_payment_detail(
     user_id = None if current_user.role in [UserRole.ADMIN] else current_user.id
     return await StripeService.get_payment_by_id(
         db=db, payment_id=payment_id, user_id=user_id
+    )
+
+
+@router.post("/refund", response_model=PaymentResponse)
+async def refund_payment(
+    payload: RefundPaymentRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Muvaffaqiyatli to'lovni bekor qilish va pulni qaytarish (Faqat Adminlar uchun)."""
+    if current_user.role not in [UserRole.ADMIN]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Ushbu amalni bajarish uchun admin huquqi talab etiladi.",
+        )
+
+    return await StripeService.refund_payment(
+        db=db, payment_id=payload.payment_id, reason=payload.reason
     )

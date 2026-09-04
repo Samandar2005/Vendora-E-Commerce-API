@@ -33,3 +33,9 @@ class CreateCheckoutSessionRequest(BaseModel):
 class CheckoutSessionResponse(BaseModel):
     checkout_url: str
     session_id: str
+
+
+class RefundPaymentRequest(BaseModel):
+    payment_id: UUID
+    reason: Optional[str] = "Mijoz so'rovi bo'yicha qaytarildi"
+
