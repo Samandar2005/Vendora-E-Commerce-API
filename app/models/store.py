@@ -5,7 +5,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from slugify import slugify
 
 from app.models.base import TimeStampedModel
-from app.schemas.user import UserRole
 
 if TYPE_CHECKING:
     from app.models.user import User

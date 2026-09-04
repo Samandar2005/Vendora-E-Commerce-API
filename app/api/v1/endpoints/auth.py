@@ -4,7 +4,6 @@ from app.schemas.user import UserChangePasswordRequest, UserEditRequest, UserReg
 
 from app.core.database import get_database
 from app.core.security import AuthManager
-# from app.api.v1.endpoints import auth
 from app.schemas.auth import TokenResponse, TokenRefreshRequest
 from app.api.deps import get_current_user
 from app.models.user import User

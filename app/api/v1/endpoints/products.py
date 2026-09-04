@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, File, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-from app.api.deps import allow_seller_or_admin, get_current_user, oauth2_schema
+from app.api.deps import  get_current_user, oauth2_schema
 from app.core.database import get_database
 from app.models.user import User
 from app.schemas.product import (

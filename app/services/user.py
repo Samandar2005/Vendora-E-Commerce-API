@@ -1,7 +1,5 @@
-"""User management business logic for Vendora E-Commerce."""
-
 from collections.abc import Sequence
-from uuid import UUID  # Standard library UUID import qilindi
+from uuid import UUID 
 from email_validator import EmailNotValidError, validate_email
 from fastapi import HTTPException, status
 from passlib.context import CryptContext
@@ -92,6 +90,7 @@ class UserManager:
 
         await session.execute(delete(User).where(User.id == user_id))
         await session.commit()
+        
 
     @staticmethod
     async def update_user(user_id: UUID, user_data: UserEditRequest, session: AsyncSession) -> User:

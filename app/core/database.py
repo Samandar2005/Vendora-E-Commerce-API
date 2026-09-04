@@ -29,7 +29,6 @@ class Base(DeclarativeBase):
     )
 
 
-# Yagona to'g'ri engine va sessionmaker
 async_engine = create_async_engine(settings.async_database_url, echo=True)
 AsyncSessionLocal = async_sessionmaker(async_engine, expire_on_commit=False)
 
