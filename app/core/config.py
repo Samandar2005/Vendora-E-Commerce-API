@@ -1,3 +1,4 @@
+import re
 from urllib.parse import quote_plus
 from functools import lru_cache
 from typing import List, Union
@@ -67,18 +68,29 @@ class Settings(BaseSettings):
     @property
     def async_database_url(self) -> str:
         """PostgreSQL ulanish satrini xavfsiz shakllantiradi va URL-encode qiladi."""
-        if self.DATABASE_URL:
-            url = self.DATABASE_URL
-            if url.startswith("postgres://"):
-                return url.replace("postgres://", "postgresql+asyncpg://", 1)
-            elif url.startswith("postgresql://") and not url.startswith("postgresql+asyncpg://"):
-                return url.replace("postgresql://", "postgresql+asyncpg://", 1)
-            return url
+        raw_url = self.DATABASE_URL or (
+            f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
+            f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        )
 
-        # Fallback: Maxsus belgilarni URL-encode qilish
-        user = quote_plus(str(self.POSTGRES_USER))
-        password = quote_plus(str(self.POSTGRES_PASSWORD))
-        return f"postgresql+asyncpg://{user}:{password}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        match = re.match(
+            r"^(?P<scheme>postgres(?:ql)?(?:\+asyncpg)?)://"
+            r"(?P<user>[^:@/]+):(?P<password>.*)@(?P<hostpart>[^@/]+)/(?P<db>.+)$",
+            raw_url,
+        )
+        if not match:
+            # Nothing to encode, return as-is with the asyncpg driver prefix
+            if raw_url.startswith("postgres://"):
+                return raw_url.replace("postgres://", "postgresql+asyncpg://", 1)
+            if raw_url.startswith("postgresql://") and not raw_url.startswith("postgresql+asyncpg://"):
+                return raw_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+            return raw_url
+
+        user = quote_plus(match.group("user"))
+        password = quote_plus(match.group("password"))
+        hostpart = match.group("hostpart")
+        db = match.group("db")
+        return f"postgresql+asyncpg://{user}:{password}@{hostpart}/{db}"
 
 
 @lru_cache()
