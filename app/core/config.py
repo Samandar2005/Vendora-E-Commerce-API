@@ -68,17 +68,20 @@ class Settings(BaseSettings):
 
     @property
     def async_database_url(self) -> str:
-        """database.py kutingan async_database_url property-si."""
-        if self.DATABASE_URL:
-            url = self.DATABASE_URL
-            if url.startswith("postgres://"):
-                return url.replace("postgres://", "postgresql+asyncpg://", 1)
-            elif url.startswith("postgresql://") and not url.startswith("postgresql+asyncpg://"):
-                return url.replace("postgresql://", "postgresql+asyncpg://", 1)
-            return url
+        """SQLAlchemy uchun asyncpg drayverli xavfsiz DATABASE_URL tayyorlaydi."""
+        url = self.DATABASE_URL
         
-        # Agar DATABASE_URL berilmagan bo'lsa, alohida o'zgaruvchilardan yig'adi:
-        return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        # Agar DATABASE_URL bo'sh bo'lsa, individual o'zgaruvchilardan yig'amiz
+        if not url:
+            url = f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+
+        # URL prefiksini asyncpg ga o'giramiz
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+        elif url.startswith("postgresql://") and not url.startswith("postgresql+asyncpg://"):
+            url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+        return url
 
 
 @lru_cache()
