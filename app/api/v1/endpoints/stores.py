@@ -69,11 +69,12 @@ async def create_store(
 async def update_store(
     store_id: UUID,
     store_data: StoreEditRequest,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_database),
 ) -> Store:
     """Update a store."""
     return await StoreManager.update_store(
-        store_id=store_id, store_data=store_data, session=db
+        store_id=store_id, store_data=store_data, current_user=current_user, session=db
     )
 
 
@@ -83,10 +84,12 @@ async def update_store(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_store(
-    store_id: UUID, db: AsyncSession = Depends(get_database)
+    store_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_database),
 ) -> None:
     """Delete Store with id."""
-    await StoreManager.delete_store(store_id=store_id, session=db)
+    await StoreManager.delete_store(store_id=store_id, current_user=current_user, session=db)
 
 
 @router.post(

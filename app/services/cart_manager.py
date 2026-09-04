@@ -83,6 +83,12 @@ class CartManager:
                 status_code=status.HTTP_404_NOT_FOUND, detail="Mahsulot topilmadi."
             )
 
+        if not product.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Mahsulot hozirda sotuvda mavjud emas.",
+            )
+
         cart_key = cls._get_cart_key(user_id)
         raw_cart = await redis.get(cart_key)
         cart_data: dict[str, int] = json.loads(raw_cart) if raw_cart else {}

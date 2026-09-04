@@ -75,10 +75,19 @@ class StoreManager:
 
     @staticmethod
     async def update_store(
-        store_id: UUID, store_data: StoreEditRequest, session: AsyncSession
+        store_id: UUID,
+        store_data: StoreEditRequest,
+        current_user: User,
+        session: AsyncSession,
     ) -> Store:
         """Update Store with id."""
         store = await StoreManager.get_store_by_id(store_id, session)
+
+        if store.seller_id != current_user.id and current_user.role != UserRole.ADMIN:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only update your own store.",
+            )
 
         update_data = store_data.model_dump(exclude_unset=True)
         for key, value in update_data.items():
@@ -88,9 +97,14 @@ class StoreManager:
         return await StoreManager.get_store_by_id(store_id, session)
 
     @staticmethod
-    async def delete_store(store_id: UUID, session: AsyncSession) -> None:
+    async def delete_store(store_id: UUID, current_user: User, session: AsyncSession) -> None:
         """Delete store with id."""
         store = await StoreManager.get_store_by_id(store_id, session)
+        if store.seller_id != current_user.id and current_user.role != UserRole.ADMIN:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only delete your own store.",
+            )
         await session.delete(store)
         await session.commit()
 

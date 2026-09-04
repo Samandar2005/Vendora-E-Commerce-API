@@ -3,10 +3,11 @@ from uuid import uuid4
 
 import pytest
 from httpx import AsyncClient
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.enums.all_enums import UserRole
-from app.models.product import Product
+from app.models.product import Product, ProductImage
 from app.models.store import Store
 from app.models.user import User
 
@@ -342,3 +343,26 @@ async def test_delete_product_success_by_admin_and_forbidden_for_unauthorized_se
     )
     assert forbidden_response.status_code == 403
     assert "o'chira" in forbidden_response.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_upload_product_image_sets_first_image_as_main_and_checks_owner(
+    client: AsyncClient,
+    db_session: AsyncSession,
+    seller_headers: dict[str, str],
+    buyer_headers: dict[str, str],
+    product: Product,
+) -> None:
+    response = await client.post(
+        f"/products/{product.id}/images",
+        files={"file": ("product.jpg", b"image-bytes", "image/jpeg")},
+        headers=seller_headers,
+    )
+    assert response.status_code == 200
+    image = (await db_session.execute(select(ProductImage).where(ProductImage.product_id == product.id))).scalar_one()
+    assert image.is_main is True
+    assert (await client.post(
+        f"/products/{product.id}/images",
+        files={"file": ("product.jpg", b"image-bytes", "image/jpeg")},
+        headers=buyer_headers,
+    )).status_code == 403

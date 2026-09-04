@@ -17,8 +17,8 @@ class UserRegisterRequest(UserBase):
     """Request schema for user registration."""
 
     password: str = Field(examples=[ExapleUser.password], min_length=8, description="User password (min 8 characters)")
-    first_name: Optional[str] = Field(examples=[ExapleUser.first_name], max_length=50)
-    last_name: Optional[str] = Field(examples=[ExapleUser.last_name], max_length=50)
+    first_name: Optional[str] = Field(None, examples=[ExapleUser.first_name], max_length=50)
+    last_name: Optional[str] = Field(None, examples=[ExapleUser.last_name], max_length=50)
 
 
 class UserLoginRequest(UserBase):

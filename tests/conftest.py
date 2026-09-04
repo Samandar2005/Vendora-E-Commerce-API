@@ -5,6 +5,7 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+from app.api.deps import get_redis
 from app.core.database import get_database
 from app.core.security import AuthManager
 from app.enums.all_enums import UserRole
@@ -15,6 +16,27 @@ from app.models.payment import Payment
 from app.models.product import Category, Product
 from app.models.store import Store
 from app.models.user import User
+
+
+class FakeRedis:
+    def __init__(self) -> None:
+        self.data: dict[str, str] = {}
+        self.expirations: dict[str, int] = {}
+
+    async def get(self, key: str) -> str | None:
+        return self.data.get(key)
+
+    async def set(self, key: str, value: str, ex: int | None = None) -> bool:
+        self.data[key] = value
+        if ex is not None:
+            self.expirations[key] = ex
+        return True
+
+    async def delete(self, key: str) -> int:
+        deleted = int(key in self.data)
+        self.data.pop(key, None)
+        self.expirations.pop(key, None)
+        return deleted
 
 
 @pytest_asyncio.fixture
@@ -40,7 +62,13 @@ async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
     async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
         yield db_session
 
+    fake_redis = FakeRedis()
+
+    async def override_get_redis() -> AsyncGenerator[FakeRedis, None]:
+        yield fake_redis
+
     app.dependency_overrides[get_database] = override_get_db
+    app.dependency_overrides[get_redis] = override_get_redis
 
     try:
         async with AsyncClient(app=app, base_url="http://test") as async_client:
