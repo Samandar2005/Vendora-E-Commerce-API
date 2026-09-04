@@ -1,54 +1,72 @@
 from functools import lru_cache
+from typing import List, Union
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    # Core settings
-    CORS_ORIGINS: str = "*"
-    SECRET_KEY: str = "default_secret"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    # App Settings
+    PROJECT_NAME: str = "Vendora E-Commerce API"
+    CORS_ORIGINS: Union[str, List[str]] = "*"
 
     # Database Settings
     POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: str = "root1234"
-    POSTGRES_HOST: str = "db"  # Docker ichida "db" bo'lishi shart
-    POSTGRES_PORT: int = 5432
+    POSTGRES_PASSWORD: str = "postgres"
+    POSTGRES_HOST: str = "db"
+    POSTGRES_PORT: Union[int, str] = 5432
     POSTGRES_DB: str = "vendora_db"
+    DATABASE_URL: str = ""
 
-    # Redis & Celery (Docker uchun localhost o'rniga redis)
-    REDIS_URL: str = "redis://redis:6379/0"
-    CELERY_BROKER_URL: str = "redis://redis:6379/0"
-    CELERY_RESULT_BACKEND: str = "redis://redis:6379/0"
+    # Redis & Celery
+    REDIS_URL: str = "redis://localhost:6379/0"
+    CELERY_BROKER_URL: str = "redis://localhost:6379/0"
+    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/0"
 
-    # Stripe Settings
-    STRIPE_SECRET_KEY: str
-    STRIPE_PUBLISHABLE_KEY: str
-    STRIPE_WEBHOOK_SECRET: str | None = None
+    # Security
+    SECRET_KEY: str = "secret-key-change-this-in-production"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
-    # SMTP / Email Settings (Qo'shildi)
+    # Stripe
+    STRIPE_SECRET_KEY: str = ""
+    STRIPE_PUBLISHABLE_KEY: str = ""
+    STRIPE_WEBHOOK_SECRET: str = ""
+
+    # Email / SMTP
     SMTP_HOST: str = "smtp.gmail.com"
     SMTP_PORT: int = 587
-    SMTP_USER: str
-    SMTP_PASSWORD: str
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
 
-    # Metadata variables
-    title: str = "Vendora E-Commerce API"
-    description: str = "Multi-vendor e-commerce backend API"
-    version: str = "v1"
-
+    # Pydantic Configuration
     model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore"
     )
 
-    @property
-    def async_database_url(self) -> str:
-        return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+    @field_validator("POSTGRES_PORT", mode="before")
+    @classmethod
+    def parse_postgres_port(cls, v):
+        """Railway-dan '${Postgres.PGPORT}' matni kelganda yoki noto'g'ri string berilganda 5432 qiladi."""
+        if isinstance(v, str):
+            if v.isdigit():
+                return int(v)
+            return 5432
+        return v or 5432
 
-    @property
-    def DATABASE_URL(self) -> str:
-        return self.async_database_url
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def assemble_db_connection(cls, v: str) -> str:
+        """Railway va PostgreSQL drayverini asyncpg ga moslashtiradi."""
+        if not v:
+            return v
+        if v.startswith("postgres://"):
+            return v.replace("postgres://", "postgresql+asyncpg://", 1)
+        elif v.startswith("postgresql://") and not v.startswith("postgresql+asyncpg://"):
+            return v.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return v
 
 
-@lru_cache
+@lru_cache()
 def get_settings() -> Settings:
     return Settings()
