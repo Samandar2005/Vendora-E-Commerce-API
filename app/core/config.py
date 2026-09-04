@@ -1,5 +1,4 @@
-# app/core/config.py
-
+from urllib.parse import quote_plus
 from functools import lru_cache
 from typing import List, Union
 from pydantic import Field, field_validator
@@ -39,7 +38,6 @@ class Settings(BaseSettings):
     SMTP_USER: str = ""
     SMTP_PASSWORD: str = ""
 
-    # Pydantic Configuration
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -68,20 +66,19 @@ class Settings(BaseSettings):
 
     @property
     def async_database_url(self) -> str:
-        """SQLAlchemy uchun asyncpg drayverli xavfsiz DATABASE_URL tayyorlaydi."""
-        url = self.DATABASE_URL
-        
-        # Agar DATABASE_URL bo'sh bo'lsa, individual o'zgaruvchilardan yig'amiz
-        if not url:
-            url = f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        """PostgreSQL ulanish satrini xavfsiz shakllantiradi va URL-encode qiladi."""
+        if self.DATABASE_URL:
+            url = self.DATABASE_URL
+            if url.startswith("postgres://"):
+                return url.replace("postgres://", "postgresql+asyncpg://", 1)
+            elif url.startswith("postgresql://") and not url.startswith("postgresql+asyncpg://"):
+                return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+            return url
 
-        # URL prefiksini asyncpg ga o'giramiz
-        if url.startswith("postgres://"):
-            url = url.replace("postgres://", "postgresql+asyncpg://", 1)
-        elif url.startswith("postgresql://") and not url.startswith("postgresql+asyncpg://"):
-            url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
-
-        return url
+        # Fallback: Maxsus belgilarni URL-encode qilish
+        user = quote_plus(str(self.POSTGRES_USER))
+        password = quote_plus(str(self.POSTGRES_PASSWORD))
+        return f"postgresql+asyncpg://{user}:{password}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
 
 @lru_cache()
