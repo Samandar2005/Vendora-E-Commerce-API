@@ -35,7 +35,7 @@ class UserManager:
         """Register a new user and generate access/refresh tokens."""
         try:
             email_validation = validate_email(user_data.email, check_deliverability=False)
-            valid_email = email_validation.email
+            valid_email = email_validation.normalized
         except EmailNotValidError as err:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, ErrorMessages.EMAIL_INVALID) from err
 
@@ -69,7 +69,7 @@ class UserManager:
     async def login(user_data: dict[str, str], session: AsyncSession) -> tuple[str, str]:
         """Authenticate user and return tokens."""
         email_validation = validate_email(user_data.email, check_deliverability=False)
-        valid_email = email_validation.email
+        valid_email = email_validation.normalized
         result = await session.execute(select(User).where(User.email == valid_email))
         user_do = result.scalar_one_or_none()
 

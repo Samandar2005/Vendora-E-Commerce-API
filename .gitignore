@@ -47,3 +47,4 @@ stripe.exe
 *.exe
 # Local Docker and generated files
 docker-compose.override.yml
+/media/uploads/

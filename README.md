@@ -23,7 +23,7 @@ app/
 |-- services/           business logic
 |-- tasks/              Celery tasks
 alembic/                database migrations
-tests/                  async API tests with SQLite and fake Redis
+tests/                  async API tests and a PostgreSQL concurrency test
 docker-compose.yml      PostgreSQL, Redis, API, and pgAdmin services
 ```
 
@@ -97,15 +97,28 @@ Routes are currently mounted at the root. There is no `/api` or `/v1` prefix in 
 
 Use Swagger UI at `/docs` for the complete request and response schemas. Admin-only and seller-only operations require a Bearer access token with the appropriate role.
 
+## Walk through checkout
+
+Open [Swagger UI](http://localhost:8000/docs) after starting the API. Use a seller account with a store and an active product, then sign in as a customer and authorize your Bearer token.
+
+1. Add the product with `POST /cart/items`, passing its `product_id` and `quantity`.
+2. Call `POST /orders/checkout`. The order reserves stock and returns an order ID.
+3. With Stripe test mode configured, pass that ID to `POST /payments/create-checkout-session` and open the returned `checkout_url`.
+4. Forward Stripe test-mode events to `POST /payments/webhook` as shown below. Check the updated order with `GET /orders/{order_id}`.
+
+To exercise checkout and the simulated Stripe responses locally, run `python -m pytest -q tests/test_cart_orders.py tests/test_payments.py` after installing the test dependencies.
+
 ## Tests
 
-Tests use an isolated in-memory SQLite database and a fake Redis implementation, so the API test suite does not require running PostgreSQL, Redis, Stripe, or Celery.
+The API tests use isolated in-memory SQLite and fake Redis. After activating the virtual environment, run:
 
 ```powershell
-.\env\Scripts\python.exe -m pytest -q
+python -m pip install -r requirements-dev.txt
+python -m ruff check --select E9,F63,F7,F82 app tests
+python -m pytest -q
 ```
 
-The suite covers authentication, authorization, users, stores, categories, products, uploads, carts, orders, payments, refunds, and webhook idempotency.
+Set `VENDORA_TEST_DATABASE_URL` to an async SQLAlchemy URL for a dedicated PostgreSQL database to include the concurrency test. The test creates a temporary schema, starts two independent transactions competing for the last item, and verifies that stock reaches zero with exactly one order.
 
 ## Celery worker
 

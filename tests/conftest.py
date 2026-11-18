@@ -55,14 +55,17 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
     await engine.dispose()
 
 
+@pytest.fixture
+def fake_redis() -> FakeRedis:
+    return FakeRedis()
+
+
 @pytest_asyncio.fixture
-async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
+async def client(db_session: AsyncSession, fake_redis: FakeRedis) -> AsyncGenerator[AsyncClient, None]:
     """Provide an async API client backed by the in-memory test database."""
 
     async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
         yield db_session
-
-    fake_redis = FakeRedis()
 
     async def override_get_redis() -> AsyncGenerator[FakeRedis, None]:
         yield fake_redis

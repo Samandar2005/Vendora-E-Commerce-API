@@ -29,7 +29,12 @@ class OrderManager:
         product_ids = [item.product_id for item in cart.items]
 
         # 2. Bazadan mahsulotlarni bloklab olamiz (Race condition'ning oldini olish uchun)
-        stmt = select(Product).where(Product.id.in_(product_ids)).with_for_update()
+        stmt = (
+            select(Product)
+            .where(Product.id.in_(product_ids))
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
         result = await db.execute(stmt)
         products_db = {p.id: p for p in result.scalars().all()}
 

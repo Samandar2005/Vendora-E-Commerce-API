@@ -8,16 +8,15 @@ from app.core.config import get_settings
 
 settings = get_settings()
 
-app = FastAPI(
-    title=settings.title,
-    description=settings.description,
-    version=settings.version,
-)
+app = FastAPI(title=settings.PROJECT_NAME)
 
 app.include_router(v1_routers)
 
 # CORS origins ro'yxatini to'g'irlash
-cors_list = [origin.strip() for origin in settings.CORS_ORIGINS.split(",") if origin.strip()]
+origins = settings.CORS_ORIGINS
+if isinstance(origins, str):
+    origins = origins.split(",")
+cors_list = [origin.strip() for origin in origins if origin.strip()]
 
 app.add_middleware(
     CORSMiddleware,
